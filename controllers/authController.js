@@ -61,13 +61,38 @@ const login = async (req,res)=>{
         {
             expiresIn:"15m"
         }
-    )
-}
+    );
+    const refreshToken = jwt.sign(
+        {
+            userInfo: {
+                id:foundedUser._id,
+                email:foundedUser.email
+            }
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn:"7d"
+        }
+    );
 
+    res.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    secure: process.env === "production", //Secure on in production mode
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 Days
+});
+
+
+res.status(200).json({accessToken,
+    id: foundedUser._id,
+    email: foundedUser.email
+});
+
+}
 
 
 
 module.exports = {
     register,
+    login,
 }
 
