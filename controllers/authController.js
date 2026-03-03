@@ -59,7 +59,7 @@ const login = async (req,res)=>{
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn:"15m"
+            expiresIn:"1m"
         }
     );
     const refreshToken = jwt.sign(
@@ -89,10 +89,51 @@ res.status(200).json({accessToken,
 
 }
 
+const refresh = (req,res) => {
 
+    const cookies = req.cookies;
+
+    if(!cookies.jwt){
+        return res.status(401).json({message: "Unauthorized"});
+    }
+
+    const refreshToken = cookies.jwt;
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async(err, decode)=>{
+        if(err) return res.status(403).json({message: "Forbidden"});
+       
+    const foundedUser = await User.findById(decode.userInfo.id);
+        if(!foundedUser) return res.status(403).json({message: "Unauthorized"});
+
+        const accessToken = jwt.sign(
+        {
+            userInfo: {
+                id:foundedUser._id,
+                email:foundedUser.email
+            }
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn:"1m"
+        }
+    );
+
+res.json({accessToken})
+     })
+}
+const logout = (req,res) =>{
+const cookies = req.cookies;
+if(!cookies.jwt)return res.sendStatus(204);
+res.clearCookies("jwt",{
+    httpOnly: true
+});
+res.json({message: "User logged out"})
+
+}
 
 module.exports = {
     register,
     login,
+    refresh,
+    logout,
 }
 

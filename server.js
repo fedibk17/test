@@ -30,7 +30,8 @@ app.get("/", (req,res)=> {
     res.send("hello");
 })
 
-app.use("/auth", require("./routes/authRoutes"))
+app.use("/auth", require("./routes/authRoutes"));
+app.use("/user", require("./routes/userRoutes"));
 
 
 mongoose.connection.once("open", ()=> {
